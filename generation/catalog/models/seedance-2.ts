@@ -40,7 +40,7 @@ export const seedance2: ModelEntry = {
     },
   },
   icon: "seedance",
-  order: 20,
+  order: 2,
   toPlatform: (plane) => mapSeedance(plane, "bytedance/seedance-2.0"),
 }
 
@@ -55,7 +55,7 @@ export const seedance2Fast: ModelEntry = {
     resolution: { type: "enum", values: ["480p", "720p"], default: "720p" },
   },
   icon: "seedance",
-  order: 21,
+  order: 3,
   toPlatform: (plane) => mapSeedance(plane, "bytedance/seedance-2.0/fast"),
 }
 
@@ -70,7 +70,7 @@ export const seedance2Mini: ModelEntry = {
     resolution: { type: "enum", values: ["480p", "720p"], default: "720p" },
   },
   icon: "seedance",
-  order: 22,
+  order: 4,
   toPlatform: (plane) => mapSeedance(plane, "bytedance/seedance-2.0/mini"),
 }
 

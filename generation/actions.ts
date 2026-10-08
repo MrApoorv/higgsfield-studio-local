@@ -48,6 +48,25 @@ export async function submitGeneration(plane: GenerationPlane) {
   return createPlatformClient(await readCredentials()).submit(path, body)
 }
 
+/** Best-effort credit estimate for a plane; null when unavailable. */
+export async function estimateGeneration(
+  plane: GenerationPlane
+): Promise<number | null> {
+  try {
+    const model = getModel(plane.model)
+    const { path, body } = toPlatform({
+      ...plane,
+      settings: parseSettings(model, plane.settings),
+    })
+    return await createPlatformClient(await readCredentials()).estimate(
+      path,
+      body
+    )
+  } catch {
+    return null
+  }
+}
+
 /** Every request in flight, answered in one round trip. Next dispatches server
     actions one at a time per client, so a poll per run would queue ahead of the
     next submit — the fan-out belongs on this side of the call, where it is

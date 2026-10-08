@@ -132,9 +132,10 @@ export const kling3MotionStd: ModelEntry = {
   surface: "video",
   label: "Kling 3.0 Motion Control",
   roles: { start: 1, video: 1 },
+  requiredRoles: ["start", "video"],
   settings: klingMotionSettings,
   icon: "kling",
-  order: 34,
+  order: 5,
   toPlatform: (plane) =>
     mapKlingMotion(plane, "kling-video/v3/motion-control/std"),
 }
@@ -144,9 +145,10 @@ export const kling3MotionPro: ModelEntry = {
   surface: "video",
   label: "Kling 3.0 Motion Control Pro",
   roles: { start: 1, video: 1 },
+  requiredRoles: ["start", "video"],
   settings: klingMotionSettings,
   icon: "kling",
-  order: 35,
+  order: 6,
   toPlatform: (plane) =>
     mapKlingMotion(plane, "kling-video/v3/motion-control/pro"),
 }

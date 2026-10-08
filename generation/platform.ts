@@ -97,6 +97,19 @@ export function createPlatformClient(options: PlatformClientOptions) {
         throw new PlatformError(400, { detail: "Invalid model" })
       return mapQueued(await send("POST", `/${model}`, input))
     },
+    /** Documented cost estimate for the same model path and body as a submit. */
+    async estimate(
+      model: string,
+      input: Record<string, unknown>
+    ): Promise<number | null> {
+      if (!isModelId(model))
+        throw new PlatformError(400, { detail: "Invalid model" })
+      const credits = asRecord(
+        await send("POST", `/estimate/${model}`, input)
+      ).credits
+      const value = typeof credits === "string" ? Number(credits) : credits
+      return typeof value === "number" && Number.isFinite(value) ? value : null
+    },
     async status(requestId: string): Promise<GenerationStatus> {
       if (!requestId)
         throw new PlatformError(400, { detail: "Missing request id" })

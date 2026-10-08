@@ -2,11 +2,16 @@
 
 import { useCallback, useEffect, useState } from "react"
 
-import { cancelGeneration, submitGeneration } from "@/generation/actions"
+import {
+  cancelGeneration,
+  estimateGeneration,
+  submitGeneration,
+} from "@/generation/actions"
 import { getModel } from "@/generation/catalog"
 import type { GenerationPlane } from "@/generation/catalog"
 import type { GenerationStatus } from "@/generation/platform"
 import { stopWatching, watchRequest } from "@/generation/poll"
+import { useUsage } from "@/generation/stores/usage"
 
 import {
   aspectFromSettings,
@@ -14,6 +19,9 @@ import {
   saveHistory,
   type RunRecord,
 } from "./history"
+
+/** In-flight estimate requests, so a run never settles before its estimate lands. */
+const estimates = new Map<string, Promise<void>>()
 
 /**
  * The studio's generation controller: submits planes to the platform through
@@ -36,7 +44,15 @@ export function useRuns() {
       watchRequest(record.requestId, {
         deadline: record.createdAt + 15 * 60_000,
       })
-        .then((status) => update(record.id, settle(status)))
+        .then(async (status) => {
+          await estimates.get(record.requestId)
+          estimates.delete(record.requestId)
+          useUsage.getState().settle(
+            record.requestId,
+            status.status === "completed"
+          )
+          update(record.id, settle(status))
+        })
         .catch((caught: unknown) => {
           update(record.id, {
             status: "failed",
@@ -75,6 +91,15 @@ export function useRuns() {
       const model = getModel(plane.model)
       try {
         const queued = await submitGeneration(plane)
+        estimates.set(
+          queued.requestId,
+          estimateGeneration(plane)
+            .then((credits) => {
+              if (credits !== null)
+                useUsage.getState().track(queued.requestId, credits)
+            })
+            .catch(() => undefined)
+        )
         const record: RunRecord = {
           id: queued.requestId,
           requestId: queued.requestId,

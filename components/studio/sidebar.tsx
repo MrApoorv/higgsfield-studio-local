@@ -1,8 +1,10 @@
 /* eslint-disable @next/next/no-img-element */
 "use client"
 
-import type { ReactNode } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import {
+  Coins,
+  ExternalLink,
   House,
   Images,
   KeyRound,
@@ -16,6 +18,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { useUsage } from "@/generation/stores/usage"
 import { cn } from "@/lib/utils"
 
 import { IconTile } from "./icon-tile"
@@ -112,6 +115,50 @@ function Row({
       <TooltipTrigger render={<span className="block" />}>{row}</TooltipTrigger>
       <TooltipContent side="right">{title}</TooltipContent>
     </Tooltip>
+  )
+}
+
+const BALANCE_URL = "https://open.higgsfield.ai"
+
+/** Estimated credits used by this app. Higgsfield documents no balance endpoint,
+    so the remaining balance is one click away on the platform instead. */
+function UsageRow({ collapsed }: { collapsed: boolean }) {
+  const spent = useUsage((s) => s.spent)
+  const pending = useUsage((s) => Object.keys(s.pending).length)
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    let m = true
+    setTimeout(() => { if (m) setMounted(true) }, 0)
+    return () => { m = false }
+  }, [])
+  const value = mounted ? spent.toLocaleString("en-US", { maximumFractionDigits: 2 }) : "–"
+  const title = `Est. credits used: ${value}${pending ? ` (+${pending} running)` : ""}`
+  return (
+    <>
+      <Row
+        collapsed={collapsed}
+        start={
+          <span className="flex size-6 items-center justify-center rounded-md border border-white/10 bg-white/5 text-muted-foreground">
+            <Coins className="size-3.5" />
+          </span>
+        }
+        title={title}
+        ariaLabel={title}
+      />
+      {!collapsed ? (
+        <a
+          href={BALANCE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex h-8 items-center gap-2.5 rounded-lg px-1.5 text-xs text-muted-foreground hover:bg-white/5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+        >
+          <span className="flex size-6 items-center justify-center">
+            <ExternalLink className="size-3.5" />
+          </span>
+          Check remaining balance
+        </a>
+      ) : null}
+    </>
   )
 }
 
@@ -252,7 +299,8 @@ export function StudioSidebar({
         </div>
       </nav>
 
-      <div className="pt-2">
+      <div className="flex flex-col gap-0.5 pt-2">
+        <UsageRow collapsed={collapsed} />
         <Row
           collapsed={collapsed}
           onClick={onOpenKey}
